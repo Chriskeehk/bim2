@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>xeokit BIM Viewer</title>
+    <link rel="stylesheet" href="./lib/fontawesome-free-5.11.2-web/css/all.min.css" type="text/css" />
+    <link rel="stylesheet" href="../dist/xeokit-bim-viewer.css" type="text/css" />
+    <link rel="stylesheet" href="./css/style.css" />
+</head>
+
+<body>
+    <div id="container" class="viewer-container">
+        <input type="checkbox" id="explorer_toggle" />
+        <label for="explorer_toggle" class="xeokit-i18n explorer_toggle_label xeokit-btn fas fa-2x fa-sitemap"
+            data-xeokit-i18ntip="toolbar.toggleExplorer" data-tippy-content="Toggle explorer"></label>
+        <input type="checkbox" id="inspector_toggle" />
+        <label id="inspector_toggle_label" for="inspector_toggle"
+            class="xeokit-i18n inspector_toggle_label xeokit-btn fas fa-info-circle fa-2x"
+            data-xeokit-i18ntip="toolbar.toggleProperties" data-tippy-content="Toggle properties"></label>
+
+        <div id="myExplorer"></div>
+
+        <div id="myInsideViewToolbar" style="
+            min-width: 400px;
+            top: 60px;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            z-index: 100000;
+            pointer-events: all;
+            position: fixed;
+            left: 0;
+            transition: all 300ms ease-in-out;
+            background-color: transparent;">
+            <div class="xeokit-btn-group" style="
+                display: flex;
+                flex-direction: row;
+                gap: 5px;
+                padding: 0;
+                background-color: transparent;">
+                <!-- Original Inside View button -->
+                <button type="button" id="insideViewButton" class="xeokit-i18n xeokit-insideview xeokit-btn fa fa-eye fa-2x" 
+                    data-xeokit-i18ntip="toolbar.insideViewButton" data-tippy-content="Inside view"
+                    style="background: white; border: 1px solid #ccc; margin: 2px; pointer-events: all;">Inside View</button>
+                
+                <!-- Inside View Moving button -->
+                <button type="button" id="insideViewMovingButton" class="xeokit-i18n xeokit-insideview xeokit-btn fa fa-walking fa-2x" 
+                    data-xeokit-i18ntip="toolbar.insideViewMovingButton" data-tippy-content="Inside view moving"
+                    style="background: white; border: 1px solid #ccc; margin: 2px; pointer-events: all;">Inside View Moving</button>
+
+                <!-- Record Point button -->
+                <button type="button" id="recordPointButton" class="xeokit-i18n xeokit-insideview xeokit-btn fa fa-record-vinyl fa-2x" 
+                    data-xeokit-i18ntip="toolbar.recordPointButton" data-tippy-content="Record current position"
+                    style="background: white; border: 1px solid #ccc; margin: 2px; pointer-events: all;">Record Point</button>
+
+                <!-- New Download JSON button -->
+                <button type="button" id="downloadJsonButton" class="xeokit-i18n xeokit-insideview xeokit-btn fa fa-download fa-2x" 
+                    data-xeokit-i18ntip="toolbar.downloadJsonButton" data-tippy-content="Download camera positions"
+                    style="background: white; border: 1px solid #ccc; margin: 2px; pointer-events: all;">Download JSON</button>
+            </div>
+        </div>
+
+        <div id="myToolbar">
+            <div class="xeokit-toolbar">
+                <!-- Reset button -->
+                <div class="xeokit-btn-group">
+                    <button type="button" class="xeokit-i18n xeokit-reset xeokit-btn fa fa-home fa-2x" data-xeokit-i18ntip="toolbar.resetViewTip" data-tippy-content="Reset view"></button>
+                </div>
+                <div class="xeokit-btn-group" role="group">
+                    <!-- 3D Mode button -->
+                    <button type="button" class="xeokit-i18n xeokit-threeD xeokit-btn fa fa-cube fa-2x active" data-xeokit-i18ntip="toolbar.toggle2d3dTip" data-tippy-content="Toggle 2D/3D"></button>
+                 
+                    <!-- Perspective/Ortho Mode button -->
+                    <button type="button" class="xeokit-i18n xeokit-ortho xeokit-btn fa fa-th fa-2x" data-xeokit-i18ntip="toolbar.togglePerspectiveTip" data-tippy-content="Toggle Perspective/Ortho"></button>
+                    <!-- Fit button -->
+                    <button type="button" class="xeokit-i18n xeokit-fit xeokit-btn fa fa-crop fa-2x" data-xeokit-i18ntip="toolbar.viewFitTip" data-tippy-content="View fit"></button>
+                    <!-- First Person mode button -->
+                    <button type="button" class="xeokit-i18n xeokit-firstPerson xeokit-btn fa fa-male fa-2x" data-xeokit-i18ntip="toolbar.firstPersonTip" data-tippy-content="Toggle first person navigation mode"></button>
+                    <!-- Show/hide IFCSpaces -->
+                    <button type="button" class="xeokit-i18n xeokit-showSpaces xeokit-btn fab fa-codepen fa-2x" data-xeokit-i18ntip="toolbar.showSpacesTip" data-tippy-content="Show IFCSpaces"></button>   
+                </div>
+                <!-- Tools button group -->
+                <div class="xeokit-btn-group" role="group">
+                    <!-- Hide tool button -->
+                    <button type="button" class="xeokit-i18n xeokit-hide xeokit-btn fa fa-eraser fa-2x" data-xeokit-i18ntip="toolbar.hideObjectsTip" data-tippy-content="Hide objects"></button>
+                    <!-- Select tool button -->
+                    <button type="button" class="xeokit-i18n xeokit-select xeokit-btn fa fa-mouse-pointer fa-2x" data-xeokit-i18ntip="toolbar.selectObjectsTip" data-tippy-content="Select objects"></button>    
+                    <!-- Marquee select tool button -->
+                    <button type="button" class="xeokit-i18n xeokit-marquee xeokit-btn fas fa-object-group fa-2x" data-xeokit-i18ntip="toolbar.marqueeSelectTip" data-tippy-content="Marquee select objects"></button><!-- Measure distance tool button -->
+                    <button type="button" class="xeokit-i18n xeokit-measure-distance xeokit-btn fa fa-ruler fa-2x" data-xeokit-i18ntip="toolbar.measureDistanceTip" data-tippy-content="Measure distance"></button>  
+                    <!-- Measure angle tool button -->
+                    <button type="button" class="xeokit-i18n xeokit-measure-angle xeokit-btn fa fa-chevron-left fa-2x" data-xeokit-i18ntip="toolbar.measureAngleTip" data-tippy-content="Measure angle"></button><!-- section tool button -->
+                    <button type="button" class="xeokit-i18n xeokit-section xeokit-btn fa fa-cut fa-2x" data-xeokit-i18ntip="toolbar.sliceObjectsTip" data-tippy-content="Slice objects">
+                        <div class="xeokit-i18n xeokit-section-menu-button" data-xeokit-i18ntip="toolbar.slicesMenuTip" data-tippy-content="Slices menu">
+                            <span class="xeokit-arrow-down xeokit-section-menu-button-arrow"></span>
+                        </div>
+                        <div class="xeokit-i18n xeokit-section-counter" data-xeokit-i18ntip="toolbar.numSlicesTip" data-tippy-content="Number of existing slices">0</div>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="myInspector"></div>
+        <div id="myViewer">
+            <canvas id="myCanvas"></canvas>
+            <canvas id="myNavCubeCanvas"></canvas>
+        </div>
+    </div>
+
+    <!-- Tooltips libraries -->
+    <script src="./lib/popper.js"></script>
+    <script src="./lib/tippy.js"></script>
+
+    <script type="module">
+        import { Server, BIMViewer, LocaleService } from "../dist/xeokit-bim-viewer.es.js";
+        import { messages as localeMessages } from "../dist/messages.js";
+
+        // Add this global variable at the top of your script
+        let insideViewState = 'outside';  // Possible states: 'outside', 'inside', 'moving'
+
+        // Add this function to load initial points when page loads
+        async function initializeCameraPositions() {
+            try {
+                const response = await fetch(`./data/camera_positions.json?t=${Date.now()}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const positions = await response.json();
+                localStorage.setItem('cameraPositions', JSON.stringify(positions));
+                console.log("Initial positions loaded into localStorage:", positions);
+            } catch (error) {
+                console.error("Error loading initial positions:", error);
+            }
+        }
+
+        window.onload = async function () {
+            console.log("Page loaded");
+            
+            // Load initial camera positions into localStorage
+            await initializeCameraPositions();
+
+            const requestParams = getRequestParams();
+            const locale = requestParams.locale || "en";
+            const projectId = requestParams.projectId;
+
+            if (!projectId) {
+                console.error("No project ID found");
+                return;
+            }
+
+            console.log("Project ID:", projectId);
+
+            const server = new Server({
+                dataDir: requestParams.dataDir || "./data"
+            });
+
+            const bimViewer = new BIMViewer(server, {
+                localeService: new LocaleService({
+                    messages: localeMessages,
+                    locale: locale
+                }),
+                canvasElement: document.getElementById("myCanvas"),
+                explorerElement: document.getElementById("myExplorer"),
+                toolbarElement: document.getElementById("myToolbar"),
+                inspectorElement: document.getElementById("myInspector"),
+                navCubeCanvasElement: document.getElementById("myNavCubeCanvas"),
+                busyModelBackdropElement: document.getElementById("myViewer")
+            });
+
+            bimViewer.loadProject(projectId, () => {
+                console.log("Project loaded successfully");
+                const modelId = requestParams.modelId;
+                if (modelId) {
+                    console.log("Loading model:", modelId);
+                    bimViewer.loadModel(modelId, () => {
+                        console.log("Model loaded successfully - Setting up buttons");
+                        setupInsideViewButton(bimViewer);
+                        setupInsideViewMovingButton(bimViewer);
+                        setupRecordPointButton(bimViewer);
+                        console.log("All buttons setup completed");
+                    });
+                } else {
+                    console.log("No model ID specified");
+                    setupInsideViewButton(bimViewer);
+                    setupInsideViewMovingButton(bimViewer);
+                    setupRecordPointButton(bimViewer);
+                }
+            });
+
+            window.bimViewer = bimViewer;
+        }
+
+        function getRequestParams() {
+            const vars = {};
+            window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, (m, key, value) => {
+                vars[key] = value;
+            });
+            return vars;
+        }
+
+        function setupInsideViewButton(bimViewer) {
+            console.log("Setting up Inside View button");
+            const insideViewButton = document.getElementById('insideViewButton');
+            if (insideViewButton) {
+                console.log("Inside View button found");
+                insideViewButton.addEventListener('click', function() {
+                    console.log("Inside View button clicked");
+                    if (bimViewer && bimViewer.viewer) {
+                        console.log("BIMViewer is initialized");
+                        try {
+                            const scene = bimViewer.viewer.scene;
+                            const camera = scene.camera;
+
+                            console.log("Scene:", scene);
+                            console.log("Camera:", camera);
+
+                            // Get the bounding box of the entire scene
+                            const aabb = scene.getAABB();
+                            console.log("Scene AABB:", aabb);
+
+                            // Calculate a position inside the building
+                            const eye = [
+                                aabb[0] + (aabb[3] - aabb[0]) * 0.2, // 20% from the left edge
+                                aabb[1] + 1.7, // Y slightly above the ground (human eye level)
+                                aabb[2] + (aabb[5] - aabb[2]) * 0.2  // 20% from the front edge
+                            ];
+                            const look = [
+                                aabb[0] + (aabb[3] - aabb[0]) * 0.5, // Look towards the center horizontally
+                                eye[1],
+                                aabb[2] + (aabb[5] - aabb[2]) * 0.5  // Look towards the center depth-wise
+                            ];
+                            const up = [0, 1, 0];
+
+                            console.log("Moving camera to:", eye);
+                            console.log("Looking at:", look);
+
+                            // Use smooth camera transition
+                            bimViewer.viewer.cameraFlight.flyTo({
+                                eye: eye,
+                                look: look,
+                                up: up
+                            }, () => {
+                                console.log("Camera flight completed");
+                                // Enable first person mode after camera flight
+                                if (typeof bimViewer.setFirstPersonMode === 'function') {
+                                    bimViewer.setFirstPersonMode(true);
+                                    console.log("First person mode enabled");
+                                } else {
+                                    console.warn("setFirstPersonMode is not a function");
+                                }
+                            });
+
+                            // Ensure all objects are visible
+                            scene.setObjectsVisible(scene.objectIds, true);
+
+                        } catch (error) {
+                            console.error("Error during camera manipulation:", error);
+                            console.error("Error stack:", error.stack);
+                        }
+                    } else {
+                        console.error("BIMViewer not initialized");
+                    }
+                });
+            } else {
+                console.error("Inside View button not found");
+            }
+        }
+
+        function setupInsideViewMovingButton(bimViewer) {
+            console.log("Setting up Inside View Moving button");
+            const insideViewMovingButton = document.getElementById('insideViewMovingButton');
+            
+            if (insideViewMovingButton) {
+                insideViewMovingButton.addEventListener('click', async function() {
+                    console.log("Inside View Moving button clicked");
+                    if (bimViewer && bimViewer.viewer) {
+                        try {
+                            // Always load from file, don't use localStorage
+                            const response = await fetch(`./data/camera_positions.json?t=${Date.now()}`);
+                            if (!response.ok) {
+                                throw new Error(`HTTP error! status: ${response.status}`);
+                            }
+                            const positions = await response.json();
+                            console.log("Loaded positions from file:", positions);
+                            
+                            const scene = bimViewer.viewer.scene;
+                            const camera = scene.camera;
+
+                            // Get all points in order
+                            const points = Object.keys(positions).sort((a, b) => {
+                                const numA = parseInt(a.replace('point', ''));
+                                const numB = parseInt(b.replace('point', ''));
+                                return numA - numB;
+                            });
+
+                            console.log("Total points found:", points.length);
+                            console.log("Points sequence:", points);
+
+                            // Create array of movements
+                            const movements = points.map(pointName => {
+                                return () => new Promise((resolve) => {
+                                    console.log(`Moving to ${pointName}`);
+                                    
+                                    bimViewer.viewer.cameraControl.navMode = "firstPerson";
+                                    
+                                    bimViewer.viewer.cameraFlight.flyTo({
+                                        eye: positions[pointName].eye,
+                                        look: positions[pointName].look,
+                                        up: positions[pointName].up,
+                                        fitFOV: 45,
+                                        duration: 1.5,
+                                        minDist: 1,
+                                        maxDist: 100,
+                                        fit: false,
+                                        sampleFlight: true
+                                    }, () => {
+                                        console.log(`Reached ${pointName}`);
+                                        setTimeout(resolve, 2000);
+                                    });
+                                });
+                            });
+
+                            // Ensure all objects are visible before starting
+                            scene.setObjectsVisible(scene.objectIds, true);
+ 
+                            // Execute movements in sequence
+                            async function executeMovements() {
+                                for (let movement of movements) {
+                                    await movement();
+                                }
+                                console.log("Tour completed!");
+                            }
+
+                            // Start the tour
+                            console.log("Starting tour...");
+                            executeMovements().catch(error => {
+                                console.error("Error during movements:", error);
+                            });
+
+                        } catch (error) {
+                            console.error("Error during camera movement:", error);
+                            console.error("Stack:", error.stack);
+                        }
+                    } else {
+                        console.error("BIMViewer not initialized");
+                    }
+                });
+            } else {
+                console.error("Inside View Moving button not found");
+            }
+        }
+
+        async function loadLatestPositions() {
+            try {
+                // Always load from file first
+                const response = await fetch(`./data/camera_positions.json?t=${Date.now()}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const positions = await response.json();
+                // Update localStorage with file data
+                localStorage.setItem('cameraPositions', JSON.stringify(positions));
+                return positions;
+            } catch (error) {
+                console.error("Error loading positions from file:", error);
+                throw error;
+            }
+        }
+
+        // Update handleButtonClick function
+        async function handleButtonClick(isRecordMode) {
+            console.log(`${isRecordMode ? "Record" : "Download"} button clicked!`);
+            if (!bimViewer || !bimViewer.viewer) {
+                console.error("bimViewer not initialized");
+                return;
+            }
+            
+            try {
+                // Get positions from localStorage
+                const storedPositions = localStorage.getItem('cameraPositions');
+                if (!storedPositions) {
+                    throw new Error('No positions found in localStorage');
+                }
+                const positions = JSON.parse(storedPositions);
+                console.log("Loaded positions from localStorage:", positions);
+
+                if (isRecordMode) {
+                    // Record Point button: Add new point
+                    const camera = bimViewer.viewer.scene.camera;
+                    const currentPosition = {
+                        eye: Array.from(camera.eye),
+                        look: Array.from(camera.look),
+                        up: Array.from(camera.up)
+                    };
+
+                    // Find the next point number
+                    const pointNumbers = Object.keys(positions)
+                        .map(key => parseInt(key.replace('point', '')))
+                        .filter(num => !isNaN(num));
+                    const lastPointNumber = Math.max(...pointNumbers);
+                    console.log("Last point number:", lastPointNumber);
+                    const nextPointNumber = lastPointNumber + 1;
+                    console.log("Next point number will be:", nextPointNumber);
+
+                    // Add new position to existing positions
+                    positions[`point${nextPointNumber}`] = currentPosition;
+                    console.log(`Added new position as point${nextPointNumber}`);
+                    
+                    // Save updated positions to localStorage
+                    localStorage.setItem('cameraPositions', JSON.stringify(positions));
+                    
+                    console.log(`Position recorded as point${nextPointNumber}`);
+                    alert(`Position recorded as point${nextPointNumber}`);
+                    
+                } else {
+                    // Download JSON button: Download current state from localStorage
+                    const blob = new Blob([JSON.stringify(positions, null, 4)], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = 'camera_positions.json';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(url);
+                    
+                    const totalPoints = Object.keys(positions).length;
+                    console.log(`Downloaded current state with ${totalPoints} points`);
+                    alert(`Camera positions file downloaded with ${totalPoints} points!`);
+                }
+
+            } catch (error) {
+                console.error("Error:", error);
+                alert(`Error ${isRecordMode ? "recording position" : "downloading file"}. Check console for details.`);
+            }
+        }
+
+        function setupRecordPointButton(bimViewer) {
+            console.log("Setting up Record and Download buttons - START");
+            const recordPointButton = document.getElementById('recordPointButton');
+            const downloadJsonButton = document.getElementById('downloadJsonButton');
+            
+            if (!recordPointButton || !downloadJsonButton) {
+                console.error("Buttons not found in DOM");
+                return;
+            }
+            
+            // Set up Record Point button
+            recordPointButton.addEventListener('click', () => handleButtonClick(true));
+            console.log("Record Point button setup completed");
+
+            // Set up Download JSON button
+            downloadJsonButton.addEventListener('click', () => handleButtonClick(false));
+            console.log("Download JSON button setup completed");
+        }
+
+        // Include any other necessary helper functions here
+    </script>
+</body>
+</html>
