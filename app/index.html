@@ -136,13 +136,33 @@
             }
         }
 
+        function getRequestParams() {
+            const vars = {};
+            window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, (m, key, value) => {
+                vars[key] = value;
+            });
+            return vars;
+        }
+
         window.onload = async function () {
             console.log("Page loaded");
+            
+            // Check URL parameter for showing all buttons
+            const requestParams = getRequestParams();
+            const showAllButtons = requestParams.Showallbutton?.toLowerCase() === 'yes';
+            
+            // Hide the buttons if showAllButtons is false
+            const recordPointButton = document.getElementById('recordPointButton');
+            const downloadJsonButton = document.getElementById('downloadJsonButton');
+            
+            if (!showAllButtons) {
+                if (recordPointButton) recordPointButton.style.display = 'none';
+                if (downloadJsonButton) downloadJsonButton.style.display = 'none';
+            }
             
             // Load initial camera positions into localStorage
             await initializeCameraPositions();
 
-            const requestParams = getRequestParams();
             const locale = requestParams.locale || "en";
             const projectId = requestParams.projectId;
 
@@ -191,14 +211,6 @@
             });
 
             window.bimViewer = bimViewer;
-        }
-
-        function getRequestParams() {
-            const vars = {};
-            window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, (m, key, value) => {
-                vars[key] = value;
-            });
-            return vars;
         }
 
         function setupInsideViewButton(bimViewer) {
