@@ -239,51 +239,14 @@
                 document.getElementById('loginScreen').style.display = 'none';
                 // Show main content
                 document.getElementById('container').style.display = 'block';
+                // Initialize viewer after successful login
+                initializeViewer();
             } else {
                 showLoginError();
             }
         }
 
-        function handleLogout() {
-            // Clear the login state
-            sessionStorage.removeItem('isLoggedIn');
-            
-            // Hide main content
-            document.getElementById('container').style.display = 'none';
-            
-            // Show login screen
-            document.getElementById('loginScreen').style.display = 'flex';
-            
-            // Clear any sensitive data
-            document.getElementById('username').value = '';
-            document.getElementById('password').value = '';
-            
-            // Optional: Reload the page to clear any application state
-            window.location.reload();
-        }
-
-        window.onload = async function () {
-            console.log("Page loaded");
-            
-            // Check login state
-            const isLoggedIn = sessionStorage.getItem('isLoggedIn') === 'true';
-            
-            // Setup login form
-            document.getElementById('loginForm').addEventListener('submit', handleLogin);
-            
-            // Setup logout button
-            document.getElementById('logoutButton').addEventListener('click', handleLogout);
-            
-            // Show/hide appropriate content based on login state
-            document.getElementById('container').style.display = isLoggedIn ? 'block' : 'none';
-            document.getElementById('loginScreen').style.display = isLoggedIn ? 'none' : 'flex';
-            
-            // Only proceed with viewer initialization if logged in
-            if (!isLoggedIn) {
-                return;
-            }
-            
-            // Check URL parameter for showing all buttons
+        async function initializeViewer() {
             const requestParams = getRequestParams();
             const showAllButtons = requestParams.Showallbutton?.toLowerCase() === 'yes';
             
@@ -347,6 +310,49 @@
             });
 
             window.bimViewer = bimViewer;
+        }
+
+        function handleLogout() {
+            // Clear the login state
+            sessionStorage.removeItem('isLoggedIn');
+            
+            // Hide main content
+            document.getElementById('container').style.display = 'none';
+            
+            // Show login screen
+            document.getElementById('loginScreen').style.display = 'flex';
+            
+            // Clear any sensitive data
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+            
+            // Optional: Reload the page to clear any application state
+            window.location.reload();
+        }
+
+        window.onload = async function () {
+            console.log("Page loaded");
+            
+            // Check login state
+            const isLoggedIn = sessionStorage.getItem('isLoggedIn') === 'true';
+            
+            // Setup login form
+            document.getElementById('loginForm').addEventListener('submit', handleLogin);
+            
+            // Setup logout button
+            document.getElementById('logoutButton').addEventListener('click', handleLogout);
+            
+            // Show/hide appropriate content based on login state
+            document.getElementById('container').style.display = isLoggedIn ? 'block' : 'none';
+            document.getElementById('loginScreen').style.display = isLoggedIn ? 'none' : 'flex';
+            
+            // Only proceed with viewer initialization if logged in
+            if (!isLoggedIn) {
+                return;
+            }
+            
+            // Initialize viewer if already logged in
+            initializeViewer();
         }
 
         function setupInsideViewButton(bimViewer) {
