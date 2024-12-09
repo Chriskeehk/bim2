@@ -9,10 +9,82 @@
     <link rel="stylesheet" href="./lib/fontawesome-free-5.11.2-web/css/all.min.css" type="text/css" />
     <link rel="stylesheet" href="../dist/xeokit-bim-viewer.css" type="text/css" />
     <link rel="stylesheet" href="./css/style.css" />
+    <style>
+        #container {
+            display: none;
+        }
+        #inspector_toggle,
+        #inspector_toggle_label {
+            display: none !important;
+        }
+    </style>
 </head>
 
 <body>
+    <div id="loginScreen" style="
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.9);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000000;">
+        <div style="
+            background-color: white;
+            padding: 2em;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            width: 300px;">
+            <h2 style="text-align: center; margin-bottom: 1em;">Login</h2>
+            <form id="loginForm" style="display: flex; flex-direction: column; gap: 1em;">
+                <div>
+                    <label for="username" style="display: block; margin-bottom: 0.5em;">Username:</label>
+                    <input type="text" id="username" style="width: 100%; padding: 0.5em;" required>
+                </div>
+                <div>
+                    <label for="password" style="display: block; margin-bottom: 0.5em;">Password:</label>
+                    <input type="password" id="password" style="width: 100%; padding: 0.5em;" required>
+                </div>
+                <button type="submit" style="
+                    background-color: #007bff;
+                    color: white;
+                    padding: 0.7em;
+                    border: none;
+                    border-radius: 4px;
+                    cursor: pointer;">
+                    Login
+                </button>
+                <div id="loginError" style="color: red; text-align: center; display: none;">
+                    Invalid username or password
+                </div>
+            </form>
+        </div>
+    </div>
+
     <div id="container" class="viewer-container">
+        <!-- Logout button -->
+        <button type="button" id="logoutButton" 
+            class="xeokit-btn fas fa-sign-out-alt" 
+            style="
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background-color: white;
+                color: #dc3545;
+                padding: 8px 15px;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+                cursor: pointer;
+                z-index: 1000000;
+                font-size: 20px;
+                display: flex;
+                align-items: center;
+                gap: 8px;">
+            <span style="font-family: Arial, sans-serif; font-size: 14px;">Logout</span>
+        </button>
         <input type="checkbox" id="explorer_toggle" />
         <label for="explorer_toggle" class="xeokit-i18n explorer_toggle_label xeokit-btn fas fa-2x fa-sitemap"
             data-xeokit-i18ntip="toolbar.toggleExplorer" data-tippy-content="Toggle explorer"></label>
@@ -72,7 +144,6 @@
                 <div class="xeokit-btn-group" role="group">
                     <!-- 3D Mode button -->
                     <button type="button" class="xeokit-i18n xeokit-threeD xeokit-btn fa fa-cube fa-2x active" data-xeokit-i18ntip="toolbar.toggle2d3dTip" data-tippy-content="Toggle 2D/3D"></button>
-                 
                     <!-- Perspective/Ortho Mode button -->
                     <button type="button" class="xeokit-i18n xeokit-ortho xeokit-btn fa fa-th fa-2x" data-xeokit-i18ntip="toolbar.togglePerspectiveTip" data-tippy-content="Toggle Perspective/Ortho"></button>
                     <!-- Fit button -->
@@ -144,8 +215,73 @@
             return vars;
         }
 
+        function showLoginError() {
+            const errorDiv = document.getElementById('loginError');
+            errorDiv.style.display = 'block';
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 3000);
+        }
+
+        function validateLogin(username, password) {
+            return username === 'demo' && password === '3dwalkingDemo@';
+        }
+
+        function handleLogin(event) {
+            event.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            if (validateLogin(username, password)) {
+                // Store login state
+                sessionStorage.setItem('isLoggedIn', 'true');
+                // Hide login screen
+                document.getElementById('loginScreen').style.display = 'none';
+                // Show main content
+                document.getElementById('container').style.display = 'block';
+            } else {
+                showLoginError();
+            }
+        }
+
+        function handleLogout() {
+            // Clear the login state
+            sessionStorage.removeItem('isLoggedIn');
+            
+            // Hide main content
+            document.getElementById('container').style.display = 'none';
+            
+            // Show login screen
+            document.getElementById('loginScreen').style.display = 'flex';
+            
+            // Clear any sensitive data
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+            
+            // Optional: Reload the page to clear any application state
+            window.location.reload();
+        }
+
         window.onload = async function () {
             console.log("Page loaded");
+            
+            // Check login state
+            const isLoggedIn = sessionStorage.getItem('isLoggedIn') === 'true';
+            
+            // Setup login form
+            document.getElementById('loginForm').addEventListener('submit', handleLogin);
+            
+            // Setup logout button
+            document.getElementById('logoutButton').addEventListener('click', handleLogout);
+            
+            // Show/hide appropriate content based on login state
+            document.getElementById('container').style.display = isLoggedIn ? 'block' : 'none';
+            document.getElementById('loginScreen').style.display = isLoggedIn ? 'none' : 'flex';
+            
+            // Only proceed with viewer initialization if logged in
+            if (!isLoggedIn) {
+                return;
+            }
             
             // Check URL parameter for showing all buttons
             const requestParams = getRequestParams();
