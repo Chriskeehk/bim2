@@ -378,7 +378,7 @@
                             // Calculate a position inside the building
                             const eye = [
                                 aabb[0] + (aabb[3] - aabb[0]) * 0.2, // 20% from the left edge
-                                aabb[1] + 1.7, // Y slightly above the ground (human eye level)
+                                aabb[1] + 1.9, // Y at 1.9m above the ground (human eye level)
                                 aabb[2] + (aabb[5] - aabb[2]) * 0.2  // 20% from the front edge
                             ];
                             const look = [
@@ -545,8 +545,16 @@
                     // Record Point button: Add new point
                     const camera = bimViewer.viewer.scene.camera;
                     const currentPosition = {
-                        eye: Array.from(camera.eye),
-                        look: Array.from(camera.look),
+                        eye: [
+                            camera.eye[0],
+                            camera.eye[1] + (1.9 - camera.eye[1]), // Adjust height to 1.9m
+                            camera.eye[2]
+                        ],
+                        look: [
+                            camera.look[0],
+                            camera.look[1] + (1.9 - camera.eye[1]), // Adjust look height accordingly
+                            camera.look[2]
+                        ],
                         up: Array.from(camera.up)
                     };
 
